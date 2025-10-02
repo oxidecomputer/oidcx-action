@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 
 try {
   core.info("Requesting GitHub Actions identity token");
-  const idToken = core.getIDToken();
+  const idToken = await core.getIDToken();
   core.info("Retrieved GitHub Actions identity token");
 
   core.info("Exchanging identity token for Oxide access token");
