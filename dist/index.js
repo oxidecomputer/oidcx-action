@@ -27248,7 +27248,7 @@ var coreExports = requireCore();
 
 try {
   coreExports.info("Requesting GitHub Actions identity token");
-  const idToken = coreExports.getIDToken();
+  const idToken = await coreExports.getIDToken();
   coreExports.info("Retrieved GitHub Actions identity token");
 
   coreExports.info("Exchanging identity token for Oxide access token");
