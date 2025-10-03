@@ -27263,6 +27263,8 @@ try {
   const data = await response.json();
   coreExports.info(`Received Oxide access token`);
 
+  console.log(JSON.stringify(data));
+
   coreExports.setOutput("access-token", data.token);
 } catch (error) {
   coreExports.setFailed(error.message);
