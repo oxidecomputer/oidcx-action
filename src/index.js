@@ -17,9 +17,7 @@ try {
   const data = await response.json();
   core.info(`Received Oxide access token`);
 
-  console.log(JSON.stringify(data));
-
-  core.setOutput("access-token", data.token);
+  core.setOutput("access-token", data.access_token);
 } catch (error) {
   core.setFailed(error.message);
 }
