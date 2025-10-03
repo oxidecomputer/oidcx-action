@@ -14,10 +14,15 @@ embedding workflow must define the following additional permissions:
 
 ```yaml
 permissions:
+  contents: read
   id-token: write
 ```
 
-This grants the workflow the permission to retrieve an identity token.
+This grants the workflow the permission to retrieve an identity token. Note that by specifying
+permissions you are overwriting (not appending to) the default token permissions. Therefore we
+need to also include `contents: read` to ensure that the action can access the repository. If you
+need any other permissions that are assigned by default ensure to add them to your `permissions`
+declaration.
 
 To then use the action in a workflow, add the following step where `<pin>` is the commit to pin to:
 
