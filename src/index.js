@@ -1,6 +1,40 @@
 import * as core from "@actions/core";
 
+const requestBody = (service, callerIdentity) => {
+  let body = {
+    caller_identity: callerIdentity,
+    service: service,
+  };
+
+  // Combinators to manipulate the inputs.
+  const trim = (value) => value.trim();
+  const commaSeparated = (map) => (value) => value.split(",").map(map);
+
+  // Add the input to the body only if it's supported by the current service.
+  const addToBody = (onlyWhenService, input, map) => {
+    let value = core.getInput(input);
+    if (service != onlyWhenService && value) {
+      throw new Error(`input ${input} is only supported when the service is ${service}`);
+    } else if (service == onlyWhenService && !value) {
+      throw new Error(`input ${input} is required when the service is ${service}`);
+    } else if (service == onlyWhenService) {
+      body[input] = map(value);
+    }
+  };
+  addToBody("oxide", "silo", trim);
+  addToBody("oxide", "duration", parseInt);
+  addToBody("github", "repositories", commaSeparated(trim));
+  addToBody("github", "permissions", commaSeparated(trim));
+
+  return body;
+};
+
 try {
+  let service = core.getInput("service");
+  if (service != "oxide" && service != "github") {
+    throw new Error(`unsupported service: ${service}`);
+  }
+
   let tokenServer = core.getInput("token-server");
 
   core.info("Requesting GitHub Actions identity token");
@@ -13,7 +47,7 @@ try {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ token: idToken }),
+    body: JSON.stringify(requestBody(service, idToken)),
   });
 
   if (!response.ok) {
