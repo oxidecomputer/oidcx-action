@@ -27247,12 +27247,14 @@ function requireCore () {
 var coreExports = requireCore();
 
 try {
+  let tokenServer = coreExports.getInput("token-server");
+
   coreExports.info("Requesting GitHub Actions identity token");
-  const idToken = await coreExports.getIDToken();
+  const idToken = await coreExports.getIDToken(tokenServer); // Set the token server as the audience.
   coreExports.info("Retrieved GitHub Actions identity token");
 
   coreExports.info("Exchanging identity token for Oxide access token");
-  const response = await fetch(`${coreExports.getInput("token-server")}/exchange`, {
+  const response = await fetch(`${tokenServer}/exchange`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

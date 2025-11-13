@@ -1,12 +1,14 @@
 import * as core from "@actions/core";
 
 try {
+  let tokenServer = core.getInput("token-server");
+
   core.info("Requesting GitHub Actions identity token");
-  const idToken = await core.getIDToken();
+  const idToken = await core.getIDToken(tokenServer); // Set the token server as the audience.
   core.info("Retrieved GitHub Actions identity token");
 
   core.info("Exchanging identity token for Oxide access token");
-  const response = await fetch(`${core.getInput("token-server")}/exchange`, {
+  const response = await fetch(`${tokenServer}/exchange`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
