@@ -27246,18 +27246,122 @@ function requireCore () {
 
 var coreExports = requireCore();
 
+var execExports = requireExec();
+
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
+const DEFAULT_TOKEN_SERVER = "https://oidc-exchange.corp.oxide.computer";
+
+const requestBody = (service, callerIdentity) => {
+  let body = {
+    caller_identity: callerIdentity,
+    service: service,
+  };
+
+  // Combinators to manipulate the inputs.
+  const trim = (value) => value.trim();
+  const commaSeparated = (map) => (value) => value.split(",").map(map);
+
+  // Add the input to the body only if it's supported by the current service.
+  const addToBody = (onlyWhenService, input, map) => {
+    let value = coreExports.getInput(input);
+    if (service != onlyWhenService && value) {
+      throw new Error(`input ${input} is only supported when the service is ${service}`);
+    } else if (service == onlyWhenService && !value) {
+      throw new Error(`input ${input} is required when the service is ${service}`);
+    } else if (service == onlyWhenService) {
+      body[input] = map(value);
+    }
+  };
+  addToBody("oxide", "silo", trim);
+  addToBody("oxide", "duration", parseInt);
+  addToBody("github", "repositories", commaSeparated(trim));
+  addToBody("github", "permissions", commaSeparated(trim));
+
+  return body;
+};
+
+const configureGitCredentials = async (service, accessToken) => {
+  if (service != "github") {
+    throw new Error("`configure-git: true` is only supported for the GitHub service");
+  } 
+
+  const secret = btoa(`x-access-token:${accessToken}`); // base64-encode
+  coreExports.setSecret(secret);
+
+  const host = "https://github.com/";
+  coreExports.info(`Configuring git to use the access token for authentication with ${host}`);
+
+  await execExports.exec("git", [
+    "config",
+    "--global",
+    `http.${host}.extraheader`,
+    `authorization: basic ${secret}`,
+  ]);
+
+  // actions/checkout with persist-credentials: true (default) configures ${{ github.token }} in the
+  // local repository. When configuring git with our own token we should remove that.
+  await execExports.exec("git", [
+    "config",
+    "--local",
+    "--unset-all",
+    `http.${host}.extraheader`,
+  ]);
+};
+
+const configureEnv = (service, accessToken) => {
+  const set = (key, value) => {
+    coreExports.info(`configured ${key} environment variable`);
+    coreExports.exportVariable(key, value);
+  };
+
+  if (service == "github") {
+    set("GITHUB_TOKEN", accessToken);
+  } else if (service == "oxide") {
+    set("OXIDE_HOST", coreExports.getInput("silo"));
+    set("OXIDE_TOKEN", accessToken);
+  } else {
+    throw new Error(`configure-env: true is not supported for service ${service}`);
+  }
+};
+
 try {
+  let service = coreExports.getInput("service");
+  if (service != "oxide" && service != "github") {
+    throw new Error(`unsupported service: ${service}`);
+  }
+
+  // At the moment we don't have the capacity to support this action being used outside of the
+  // oxidecomputer org. Soft-prevent usage in other orgs.
+  let useDefaultServer = true;
+  if (!process.env.GITHUB_REPOSITORY.startsWith("oxidecomputer/")) {
+    useDefaultServer = false; 
+    if (coreExports.getInput("usage-outside-oxide-is-unsupported") != "I acknowledge that") {
+      throw new Error("usage of this action outside of the oxidecomputer org is unsupported");
+    }
+  }
+
+  let tokenServer = coreExports.getInput("token-server");
+  if (!tokenServer && useDefaultServer) {
+    tokenServer = DEFAULT_TOKEN_SERVER;
+  } else if (!tokenServer) {
+    throw new Error("the token-server property must be specified outside of oxidecomputer");
+  }
+
   coreExports.info("Requesting GitHub Actions identity token");
-  const idToken = await coreExports.getIDToken();
+  const idToken = await coreExports.getIDToken(tokenServer); // Set the token server as the audience.
   coreExports.info("Retrieved GitHub Actions identity token");
 
   coreExports.info("Exchanging identity token for Oxide access token");
-  const response = await fetch(`${coreExports.getInput("token-server")}/exchange`, {
+  const response = await fetch(`${tokenServer}/exchange`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ token: idToken }),
+    body: JSON.stringify(requestBody(service, idToken)),
   });
 
   if (!response.ok) {
@@ -27281,6 +27385,13 @@ try {
 
   coreExports.setSecret(data.access_token);
   coreExports.setOutput("access-token", data.access_token);
+
+  if (coreExports.getInput("configure-git")) {
+    await configureGitCredentials(service, data.access_token);
+  }
+  if (coreExports.getInput("configure-env")) {
+    configureEnv(service, data.access_token);
+  }
 } catch (error) {
   coreExports.setFailed(error.message);
 }

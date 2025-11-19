@@ -1,10 +1,26 @@
-name: Oxide OIDC Exchange
-description: Exchange GitHub Actions identity tokens for Oxide access tokens
+name: oidc-exchange action
+description: Exchange GitHub Actions identity tokens with short-lived service tokens
 
 inputs:
-  token-server:
-    description: Server responsible for exchanging GitHub tokens for Oxide access tokens
+  service:
+    description: Service to request a token for
     required: true
+  silo: 
+    description: URL of the silo to request access to. Valid only when the service is oxide.
+  duration: 
+    description: Maximum duration of the token. Valid only when the service is oxide.
+  repositories:
+    description: Comma-separated list of repository names. Valid only when the service is github.
+  permissions:
+    description: Comma-separated list of permissions. Valid only when the service is github.
+  configure-git:
+    description: Configure git to use the GitHub token for HTTPS operations. Valid only when the service is github.
+  configure-env:
+    description: Configure the environment variables to authenticate with the service.
+  token-server:
+    description: Customize the URL of the oidc-exchange instance.
+  usage-outside-oxide-is-unsupported:
+    description: Acknowledge the usage of this action outside of Oxide orgs.
 
 outputs:
   access-token:
