@@ -27246,6 +27246,8 @@ function requireCore () {
 
 var coreExports = requireCore();
 
+var execExports = requireExec();
+
 const requestBody = (service, callerIdentity) => {
   let body = {
     caller_identity: callerIdentity,
@@ -27273,6 +27275,34 @@ const requestBody = (service, callerIdentity) => {
   addToBody("github", "permissions", commaSeparated(trim));
 
   return body;
+};
+
+const configureGitCredentials = async (service, accessToken) => {
+  if (service != "github") {
+    throw new Error("`configure-git: true` is only supported for the GitHub service");
+  } 
+
+  const secret = btoa(`x-access-token:${accessToken}`); // base64-encode
+  coreExports.setSecret(secret);
+
+  const host = "https://github.com/";
+  coreExports.info(`Configuring git to use the access token for authentication with ${host}`);
+
+  await execExports.exec("git", [
+    "config",
+    "--global",
+    `http.${host}.extraheader`,
+    `authorization: basic ${secret}`,
+  ]);
+
+  // actions/checkout with persist-credentials: true (default) configures ${{ github.token }} in the
+  // local repository. When configuring git with our own token we should remove that.
+  await execExports.exec("git", [
+    "config",
+    "--local",
+    "--unset-all",
+    `http.${host}.extraheader`,
+  ]);
 };
 
 try {
@@ -27317,6 +27347,10 @@ try {
 
   coreExports.setSecret(data.access_token);
   coreExports.setOutput("access-token", data.access_token);
+
+  if (coreExports.getInput("configure-git")) {
+    await configureGitCredentials(service, data.access_token);
+  }
 } catch (error) {
   coreExports.setFailed(error.message);
 }

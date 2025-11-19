@@ -16,6 +16,8 @@ inputs:
     description: Comma-separated list of repository names. Valid only when the service is github.
   permissions:
     description: Comma-separated list of permissions. Valid only when the service is github.
+  configure-git:
+    description: Configure git to use the GitHub token for HTTPS operations. Valid only when the service is github.
 
 outputs:
   access-token:
