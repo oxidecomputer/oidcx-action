@@ -5,6 +5,8 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 
+const DEFAULT_TOKEN_SERVER = "https://oidc-exchange.corp.oxide.computer";
+
 const requestBody = (service, callerIdentity) => {
   let body = {
     caller_identity: callerIdentity,
@@ -84,7 +86,22 @@ try {
     throw new Error(`unsupported service: ${service}`);
   }
 
+  // At the moment we don't have the capacity to support this action being used outside of the
+  // oxidecomputer org. Soft-prevent usage in other orgs.
+  let useDefaultServer = true;
+  if (!process.env.GITHUB_REPOSITORY.startsWith("oxidecomputer/")) {
+    useDefaultServer = false; 
+    if (core.getInput("usage-outside-oxide-is-unsupported") != "I acknowledge that") {
+      throw new Error("usage of this action outside of the oxidecomputer org is unsupported");
+    }
+  }
+
   let tokenServer = core.getInput("token-server");
+  if (!tokenServer && useDefaultServer) {
+    tokenServer = DEFAULT_TOKEN_SERVER;
+  } else if (!tokenServer) {
+    throw new Error("the token-server property must be specified outside of oxidecomputer");
+  }
 
   core.info("Requesting GitHub Actions identity token");
   const idToken = await core.getIDToken(tokenServer); // Set the token server as the audience.

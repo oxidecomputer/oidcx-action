@@ -27248,6 +27248,13 @@ var coreExports = requireCore();
 
 var execExports = requireExec();
 
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
+const DEFAULT_TOKEN_SERVER = "https://oidc-exchange.corp.oxide.computer";
+
 const requestBody = (service, callerIdentity) => {
   let body = {
     caller_identity: callerIdentity,
@@ -27327,7 +27334,22 @@ try {
     throw new Error(`unsupported service: ${service}`);
   }
 
+  // At the moment we don't have the capacity to support this action being used outside of the
+  // oxidecomputer org. Soft-prevent usage in other orgs.
+  let useDefaultServer = true;
+  if (!process.env.GITHUB_REPOSITORY.startsWith("oxidecomputer/")) {
+    useDefaultServer = false; 
+    if (coreExports.getInput("usage-outside-oxide-is-unsupported") != "I acknowledge that") {
+      throw new Error("usage of this action outside of the oxidecomputer org is unsupported");
+    }
+  }
+
   let tokenServer = coreExports.getInput("token-server");
+  if (!tokenServer && useDefaultServer) {
+    tokenServer = DEFAULT_TOKEN_SERVER;
+  } else if (!tokenServer) {
+    throw new Error("the token-server property must be specified outside of oxidecomputer");
+  }
 
   coreExports.info("Requesting GitHub Actions identity token");
   const idToken = await coreExports.getIDToken(tokenServer); // Set the token server as the audience.

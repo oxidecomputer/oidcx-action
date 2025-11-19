@@ -4,13 +4,10 @@ A GitHub Action to interact with [oidc-exchange], requesting tokens and
 configuring the build environment to use them. Its source code is released under
 the MPL 2.0 license.
 
-To use this action you need to spin up an instance of [oidc-exchange]. Oxide
-employees can use this instance for repositories inside of the `oxidecomputer`
-organization:
-
-```
-https://oidc-exchange.corp.oxide.computer
-```
+> [!CAUTION]
+>
+> This action is only supported for use within the `oxidecomputer` GitHub
+> organization.
 
 [oidc-exchange]: https://github.com/oxidecomputer/oidc-exchange
 
@@ -51,7 +48,6 @@ environment, you can add this step:
 # Obtain the token:
 - uses: oxidecomputer/oidc-exchange-action@<VERSION>
   with:
-    token-server: https://OIDC_EXCHANGE.EXAMPLE
     service: oxide
     silo: https://SILO_NAME.SYS.RACK.EXAMPLE
     duration: 3600
@@ -74,7 +70,6 @@ output:
 # Obtain the token:
 - uses: oxidecomputer/oidc-exchange-action@<VERSION>
   with:
-    token-server: https://OIDC_EXCHANGE.EXAMPLE
     service: oxide
     silo: https://SILO_NAME.SYS.RACK.EXAMPLE
     duration: 3600
@@ -96,7 +91,6 @@ workflow:
 # Obtain the token:
 - uses: oxidecomputer/oidc-exchange-action@<VERSION>
   with:
-    token-server: https://OIDC_EXCHANGE.EXAMPLE
     service: github
     repositories: ORG/REPO1,ORG/REPO2,ORG/REPO3
     permissions: contents:write,pull_requests:write
@@ -131,7 +125,6 @@ If you want manual control over which steps can use the token, you can omit the
 # Obtain the token:
 - uses: oxidecomputer/oidc-exchange-action@<VERSION>
   with:
-    token-server: https://OIDC_EXCHANGE.EXAMPLE
     service: github
     repositories: ORG/REPO1,ORG/REPO2,ORG/REPO3
     permissions: contents:write,pull_requests:write
