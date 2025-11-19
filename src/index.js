@@ -58,6 +58,22 @@ const configureGitCredentials = async (service, accessToken) => {
   ]);
 };
 
+const configureEnv = (service, accessToken) => {
+  const set = (key, value) => {
+    core.info(`configured ${key} environment variable`);
+    core.exportVariable(key, value);
+  };
+
+  if (service == "github") {
+    set("GITHUB_TOKEN", accessToken);
+  } else if (service == "oxide") {
+    set("OXIDE_HOST", core.getInput("silo"));
+    set("OXIDE_TOKEN", accessToken);
+  } else {
+    throw new Error(`configure-env: true is not supported for service ${service}`);
+  }
+}
+
 try {
   let service = core.getInput("service");
   if (service != "oxide" && service != "github") {
@@ -103,6 +119,9 @@ try {
 
   if (core.getInput("configure-git")) {
     await configureGitCredentials(service, data.access_token);
+  }
+  if (core.getInput("configure-env")) {
+    configureEnv(service, data.access_token);
   }
 } catch (error) {
   core.setFailed(error.message);

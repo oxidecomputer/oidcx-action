@@ -18,6 +18,8 @@ inputs:
     description: Comma-separated list of permissions. Valid only when the service is github.
   configure-git:
     description: Configure git to use the GitHub token for HTTPS operations. Valid only when the service is github.
+  configure-env:
+    description: Configure the environment variables to authenticate with the service.
 
 outputs:
   access-token:
