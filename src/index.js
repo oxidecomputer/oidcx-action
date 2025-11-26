@@ -5,7 +5,7 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 
-const DEFAULT_TOKEN_SERVER = "https://oidc-exchange.corp.oxide.computer";
+const DEFAULT_TOKEN_SERVER = "https://oidcx.services.corp.oxide.computer";
 
 const requestBody = (service, callerIdentity) => {
   let body = {

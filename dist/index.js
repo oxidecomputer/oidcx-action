@@ -27253,7 +27253,7 @@ var execExports = requireExec();
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-const DEFAULT_TOKEN_SERVER = "https://oidc-exchange.corp.oxide.computer";
+const DEFAULT_TOKEN_SERVER = "https://oidcx.services.corp.oxide.computer";
 
 const requestBody = (service, callerIdentity) => {
   let body = {
