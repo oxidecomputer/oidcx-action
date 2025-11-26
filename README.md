@@ -37,7 +37,7 @@ your instance administrator for it.
 Oxide employees can refer to the policy of our production instance in [the
 corp-services repo][corp-services].
 
-[corp-services]: https://github.com/oxidecomputer/corp-services/blob/main/oidc-xchng/data/policy.polar
+[corp-services]: https://github.com/oxidecomputer/corp-services/blob/main/oidcx/data/policy.polar
 
 ### Requesting Oxide silo tokens
 
