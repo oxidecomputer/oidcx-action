@@ -36,6 +36,11 @@ const requestBody = (service, callerIdentity) => {
   return body;
 };
 
+const setVar = (key, value) => {
+  core.info(`configured ${key} environment variable`);
+  core.exportVariable(key, value);
+};
+
 const configureGitCredentials = async (service, accessToken) => {
   if (service != "github") {
     throw new Error("`configure-git: true` is only supported for the GitHub service");
@@ -62,19 +67,18 @@ const configureGitCredentials = async (service, accessToken) => {
     "--unset-all",
     `http.${host}.extraheader`,
   ]);
+
+  // Cargo's builtin git implementation doesn't support the http.$host.extraHeader config option. We
+  // thus have to switch to the git CLI implementation.
+  setVar("CARGO_NET_GIT_FETCH_WITH_CLI", "true");
 };
 
 const configureEnv = (service, accessToken) => {
-  const set = (key, value) => {
-    core.info(`configured ${key} environment variable`);
-    core.exportVariable(key, value);
-  };
-
   if (service == "github") {
-    set("GITHUB_TOKEN", accessToken);
+    setVar("GITHUB_TOKEN", accessToken);
   } else if (service == "oxide") {
-    set("OXIDE_HOST", core.getInput("silo"));
-    set("OXIDE_TOKEN", accessToken);
+    setVar("OXIDE_HOST", core.getInput("silo"));
+    setVar("OXIDE_TOKEN", accessToken);
   } else {
     throw new Error(`configure-env: true is not supported for service ${service}`);
   }
