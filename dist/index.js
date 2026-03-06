@@ -27316,15 +27316,13 @@ const configureGitCredentials = async (service, accessToken) => {
     "--local",
     "--unset-all",
     `http.${host}.extraheader`,
-  ]).then((status) => {
+  ]).catch((err) => {
     // We want to ignore status code 5 which will be returned if there are no credentials to unset.
-    if (status === 5) {
+    if (err.toString() === "The process '/usr/bin/git' failed with exit code 5") {
       coreExports.info(`While unsetting http.${host}.extraheader git returned status code 5, no credentials to unset`);
       return 0
     }
 
-    return status
-  }).catch((err) => {
     coreExports.info(`Failed to unset http.${host}.extraheader. git returned error: ${err}`);
     throw err
   });
