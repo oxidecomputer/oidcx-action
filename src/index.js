@@ -44,7 +44,7 @@ const setVar = (key, value) => {
 const configureGitCredentials = async (service, accessToken) => {
   if (service != "github") {
     throw new Error("`configure-git: true` is only supported for the GitHub service");
-  } 
+  }
 
   const secret = btoa(`x-access-token:${accessToken}`); // base64-encode
   core.setSecret(secret);
@@ -59,6 +59,8 @@ const configureGitCredentials = async (service, accessToken) => {
     `authorization: basic ${secret}`,
   ]);
 
+  core.info(`Configured global git credentials for ${host} via http.host.extraheader`)
+
   // actions/checkout with persist-credentials: true (default) configures ${{ github.token }} in the
   // local repository. When configuring git with our own token we should remove that.
   await exec.exec("git", [
@@ -68,9 +70,13 @@ const configureGitCredentials = async (service, accessToken) => {
     `http.${host}.extraheader`,
   ]);
 
+  core.info(`Removed local git credentials for ${host} previously set via http.host.extraheader`)
+
   // Cargo's builtin git implementation doesn't support the http.$host.extraHeader config option. We
   // thus have to switch to the git CLI implementation.
   setVar("CARGO_NET_GIT_FETCH_WITH_CLI", "true");
+
+  core.info(`Switched to git CLI implementation for cargo`)
 };
 
 const configureEnv = (service, accessToken) => {
@@ -94,7 +100,7 @@ try {
   // oxidecomputer org. Soft-prevent usage in other orgs.
   let useDefaultServer = true;
   if (!process.env.GITHUB_REPOSITORY.startsWith("oxidecomputer/")) {
-    useDefaultServer = false; 
+    useDefaultServer = false;
     if (core.getInput("usage-outside-oxide-is-unsupported") != "I acknowledge that") {
       throw new Error("usage of this action outside of the oxidecomputer org is unsupported");
     }
