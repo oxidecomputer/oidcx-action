@@ -46,7 +46,7 @@ environment, you can add this step:
 
 ```yaml
 # Obtain the token:
-- uses: oxidecomputer/oidc-exchange-action@<VERSION>
+- uses: oxidecomputer/oidcx-action@<VERSION>
   with:
     service: oxide
     silo: https://SILO_NAME.SYS.RACK.EXAMPLE
@@ -68,7 +68,7 @@ output:
 
 ```yaml
 # Obtain the token:
-- uses: oxidecomputer/oidc-exchange-action@<VERSION>
+- uses: oxidecomputer/oidcx-action@<VERSION>
   with:
     service: oxide
     silo: https://SILO_NAME.SYS.RACK.EXAMPLE
@@ -89,7 +89,7 @@ workflow:
 
 ```yaml
 # Obtain the token:
-- uses: oxidecomputer/oidc-exchange-action@<VERSION>
+- uses: oxidecomputer/oidcx-action@<VERSION>
   with:
     service: github
     repositories: ORG/REPO1,ORG/REPO2,ORG/REPO3
@@ -123,7 +123,7 @@ If you want manual control over which steps can use the token, you can omit the
 
 ```yaml
 # Obtain the token:
-- uses: oxidecomputer/oidc-exchange-action@<VERSION>
+- uses: oxidecomputer/oidcx-action@<VERSION>
   with:
     service: github
     repositories: ORG/REPO1,ORG/REPO2,ORG/REPO3
