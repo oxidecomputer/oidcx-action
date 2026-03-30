@@ -69,6 +69,9 @@ const configureGitCredentials = async (service, accessToken) => {
     "--unset-all",
     `http.${host}.extraheader`,
   ]).catch((err) => {
+    core.info(`While unsetting http.${host}.extraheader git returned error. Checking error code to determine if credentials were unset.`)
+    core.info(err.toString())
+
     // We want to ignore status code 5 which will be returned if there are no credentials to unset.
     if (err.toString().endsWith("failed with exit code 5")) {
       core.info(`While unsetting http.${host}.extraheader git returned status code 5, no credentials to unset`)
