@@ -41,6 +41,16 @@ const setVar = (key, value) => {
   core.exportVariable(key, value);
 };
 
+const isInsideGitRepo = async () => {
+  let returnCode = await exec.exec("git", ["rev-parse", "--show-toplevel"], {
+    // Don't output anything to stdout.
+    silent: true,
+    // Don't throw an exception if this returns a non-zero exit code.
+    ignoreReturnCode: true,
+  });
+  return returnCode == 0;
+};
+
 const configureGitCredentials = async (service, accessToken) => {
   if (service != "github") {
     throw new Error("`configure-git: true` is only supported for the GitHub service");
@@ -60,6 +70,10 @@ const configureGitCredentials = async (service, accessToken) => {
   ]);
 
   core.info(`Configured global git credentials for ${host} via http.host.extraheader`)
+
+  if (!await isInsideGitRepo()) {
+    throw new Error("`configure-git: true` is only supported after running `actions/checkout`");
+  }
 
   // actions/checkout with persist-credentials: true (default) configures ${{ github.token }} in the
   // local repository. When configuring git with our own token we should remove that.
@@ -84,7 +98,6 @@ const configureGitCredentials = async (service, accessToken) => {
     core.info(`Failed to unset http.${host}.extraheader. git returned error: ${err}`)
     throw err
   });
-
   core.info(`Removed local git credentials for ${host} previously set via http.host.extraheader`)
 
   // Cargo's builtin git implementation doesn't support the http.$host.extraHeader config option. We
