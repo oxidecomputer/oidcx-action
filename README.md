@@ -113,9 +113,10 @@ With `configure-env: true`, the action will take care of setting the
 `GITHUB_TOKEN` environment variable with the obtained credentials. Every future
 step in the job will be able to retrieve the token from it.
 
-WIth the `configure-git: true`, the action will configure git to transparently
+With the `configure-git: true`, the action will configure git to transparently
 use the obtained token for all future git operations done through HTTPS,
-overriding the token configured through `actions/checkout`.
+overriding the token configured through `actions/checkout`. The setting is only
+supported when running `oidcx-action` after `actions/checkout`.
 
 If you want manual control over which steps can use the token, you can omit the
 `configure-env` and `configure-git` keys and obtain the token through the
