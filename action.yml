@@ -5,9 +5,9 @@ inputs:
   service:
     description: Service to request a token for
     required: true
-  silo: 
+  silo:
     description: URL of the silo to request access to. Valid only when the service is oxide.
-  duration: 
+  duration:
     description: Maximum duration of the token. Valid only when the service is oxide.
   repositories:
     description: Comma-separated list of repository names. Valid only when the service is github.
