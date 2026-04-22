@@ -27325,28 +27325,20 @@ const configureGitCredentials = async (service, accessToken) => {
 
   // actions/checkout with persist-credentials: true (default) configures ${{ github.token }} in the
   // local repository. When configuring git with our own token we should remove that.
-  await execExports.exec("git", [
-    "config",
-    "--local",
-    "--unset-all",
-    `http.${host}.extraheader`,
-  ]).catch((err) => {
-    coreExports.info(`While unsetting http.${host}.extraheader git returned error. Checking error code to determine if credentials were unset.`);
-    coreExports.info(err.toString());
+  const unsetCode = await execExports.exec(
+    "git",
+    ["config", "--local", "--unset-all", `http.${host}.extraheader`],
+    { ignoreReturnCode: true, silent: true },
+  );
 
-    const isStatus5Error = err.toString().endsWith("failed with exit code 5");
-    coreExports.info(`Test for status code 5 error: ${isStatus5Error}`);
-
-    // We want to ignore status code 5 which will be returned if there are no credentials to unset.
-    if (isStatus5Error) {
-      coreExports.info(`While unsetting http.${host}.extraheader git returned status code 5, no credentials to unset`);
-      return 0
-    }
-
-    coreExports.info(`Failed to unset http.${host}.extraheader. git returned error: ${err}`);
-    throw err
-  });
-  coreExports.info(`Removed local git credentials for ${host} previously set via http.host.extraheader`);
+  if (unsetCode === 0) {
+    coreExports.info(`Removed local git credentials for ${host} previously set via http.host.extraheader`);
+  } else if (unsetCode === 5) {
+    // git exits 5 when the section/key does not exist — nothing to unset.
+    coreExports.info(`No local git credentials for ${host} to remove`);
+  } else {
+    throw new Error(`git config --local --unset-all exited with unexpected code ${unsetCode}`);
+  }
 
   // Cargo's builtin git implementation doesn't support the http.$host.extraHeader config option. We
   // thus have to switch to the git CLI implementation.
