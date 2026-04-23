@@ -27,5 +27,5 @@ outputs:
     description: The access token obtained from the token server
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
